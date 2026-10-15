@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABSENSI SISWA BY SULTAN</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#070b1c;color:white;font-family:Arial,sans-serif}
+header{padding:22px;background:#101a3c;text-align:center;border-bottom:2px solid #00d9ff}
+h1{color:#42dcff;margin:0}
+nav{display:flex;justify-content:center;gap:10px;padding:15px;flex-wrap:wrap}
+nav a{color:white;text-decoration:none;background:#26265f;padding:12px;border-radius:10px}
+main{max-width:900px;margin:auto;padding:15px}
+.card{background:#101a35;border:1px solid #3357a5;border-radius:16px;padding:20px;margin-bottom:18px}
+h2{color:#60dfff;margin-top:0}
+input{width:100%;padding:13px;margin:8px 0;background:#080f25;border:1px solid #3975bc;border-radius:9px;color:white}
+button{padding:12px;border:0;border-radius:9px;color:white;background:#5140ff;font-weight:bold;cursor:pointer}
+.statuses{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.statuses button{background:#182747;border:1px solid #42619c}
+.statuses button.active{background:#007d91;border:2px solid #46eaff}
+.send{width:100%;background:linear-gradient(90deg,#8a32ff,#078dff);margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:#0a1229;border:1px solid #344c85;padding:15px;border-radius:12px}
+.stat b{display:block;font-size:28px;color:#40e3ff;margin-top:8px}
+table{width:100%;border-collapse:collapse;min-width:440px}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #2c416b}
+th{color:#54ddff}
+.table{overflow-x:auto}
+small{color:#b7c8eb}
+footer{text-align:center;padding:20px;color:#91a6d0}
+@media(max-width:480px){
+ .statuses{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🎓 ABSENSI SISWA</h1>
+<p>BY SULTAN • Disiplin, Jujur, Berprestasi</p>
+<div id="clock"></div>
+<div id="date"></div>
+</header>
+
+<nav>
+<a href="#form">📝 Absensi</a>
+<a href="#dashboard">📊 Dashboard</a>
+<a href="#riwayat">📋 Riwayat</a>
+</nav>
+
+<main>
+<section class="card" id="form">
+<h2>📝 Form Absensi</h2>
+
+<label for="nama">Nama lengkap siswa</label>
+<input id="nama" maxlength="70"
+placeholder="Masukkan nama kamu">
+
+<h3>Pilih kehadiran</h3>
+<div class="statuses">
+<button type="button" class="active" data-status="Hadir">✅ Hadir</button>
+<button type="button" data-status="Sakit">🤒 Sakit</button>
+<button type="button" data-status="Izin">📩 Izin</button>
+<button type="button" data-status="Alpha">❌ Alpha</button>
+</div>
+
+<button class="send" id="kirim" type="button">
+🚀 KIRIM ABSENSI
+</button>
+
+<p><small>
+Waktu pengiriman tercatat otomatis dalam WIB.
+</small></p>
+</section>
+
+<section class="card" id="dashboard">
+<h2>📊 Dashboard Hari Ini</h2>
+<div class="stats">
+<div class="stat">✅ Hadir<b id="hadir">0</b></div>
+<div class="stat">🤒 Sakit<b id="sakit">0</b></div>
+<div class="stat">📩 Izin<b id="izin">0</b></div>
+<div class="stat">❌ Alpha<b id="alpha">0</b></div>
+</div>
+<p>Total absensi hari ini: <b id="total">0</b></p>
+</section>
+
+<section class="card" id="riwayat">
+<h2>📋 Riwayat Absensi</h2>
+<input id="cari" placeholder="🔎 Cari nama siswa...">
+<div class="table">
+<table>
+<thead>
+<tr>
+<th>Nama</th>
+<th>Status</th>
+<th>Tanggal</th>
+<th>Jam WIB</th>
+</tr>
+</thead>
+<tbody id="daftar"></tbody>
+</table>
+</div>
+<p><small>Data tersimpan di browser perangkat ini.</small></p>
+</section>
+</main>
+
+<footer>
+© <span id="tahun"></span> ABSENSI SISWA BY SULTAN
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const zona = "Asia/Jakarta";
+let status = "Hadir";
+const key = "absensi_sultan_v1";
+
+function tanggal(d){
+ return new Intl.DateTimeFormat("en-CA",{
+  timeZone:zona,
+  year:"numeric",month:"2-digit",day:"2-digit"
+ }).format(d);
+}
+
+function waktu(d){
+ return new Intl.DateTimeFormat("id-ID",{
+  timeZone:zona,
+  hour:"2-digit",minute:"2-digit",
+  second:"2-digit",hourCycle:"h23"
+ }).format(d);
+}
+
+function tanggalCantik(d){
+ return new Intl.DateTimeFormat("id-ID",{
+  timeZone:zona,
+  day:"2-digit",month:"long",year:"numeric"
+ }).format(d);
+}
+
+function records(){
+ try{
+  return JSON.parse(localStorage.getItem(key)||"[]");
+ }catch(e){
+  return [];
+ }
+}
+
+function simpan(data){
+ localStorage.setItem(key,JSON.stringify(data));
+}
+
+function jam(){
+ const d = new Date();
+ $("clock").textContent = waktu(d)+" WIB";
+ $("date").textContent = tanggalCantik(d);
+ $("tahun").textContent = new Intl.DateTimeFormat("en",{
+  timeZone:zona,year:"numeric"
+ }).format(d);
+ render();
+}
+
+document.querySelectorAll("[data-status]").forEach(btn=>{
+ btn.onclick = ()=>{
+  status = btn.dataset.status;
+  document.querySelectorAll("[data-status]").forEach(b=>{
+   b.classList.toggle("active",b===btn);
+  });
+ };
+});
+
+$("kirim").onclick = ()=>{
+ const nama = $("nama").value.trim();
+
+ if(!nama){
+  alert("Masukkan nama siswa terlebih dahulu!");
+  $("nama").focus();
+  return;
+ }
+
+ const d = new Date();
+ const hari = tanggal(d);
+ const item = {
+  nama:nama,
+  status:status,
+  hari:hari,
+  tanggal:tanggalCantik(d),
+  jam:waktu(d),
+  waktuISO:d.toISOString()
+ };
+
+ let data = records();
+
+ // Satu nama hanya memiliki satu absensi per tanggal
+ const index = data.findIndex(x =>
+  x.hari===hari &&
+  x.nama.trim().toLocaleLowerCase("id-ID")===
+  nama.toLocaleLowerCase("id-ID")
+ );
+
+ if(index >= 0){
+  if(!confirm(
+   "Nama ini sudah absen hari ini. Ganti status sebelumnya?"
+  )) return;
+  data[index] = item;
+ }else{
+  data.push(item);
+ }
+
+ try{
+  simpan(data);
+  render();
+  alert("Absensi berhasil dicatat pukul "+item.jam+" WIB!");
+ }catch(e){
+  alert("Data gagal disimpan. Periksa penyimpanan browser.");
+ }
+};
+
+$("cari").addEventListener("input",render);
+
+function render(){
+ const data = records();
+ const hari = tanggal(new Date());
+
+ ["Hadir","Sakit","Izin","Alpha"].forEach(s=>{
+  $(s.toLowerCase()).textContent =
+   data.filter(x=>x.hari===hari&&x.status===s).length;
+ });
+
+ $("total").textContent =
+  data.filter(x=>x.hari===hari).length;
+
+ const q = $("cari").value.trim().toLocaleLowerCase("id-ID");
+ const tbody = $("daftar");
+ tbody.replaceChildren();
+
+ data.slice().reverse()
+ .filter(x=>x.nama.toLocaleLowerCase("id-ID").includes(q))
+ .forEach(x=>{
+  const tr = document.createElement("tr");
+
+  [x.nama,x.status,x.tanggal,x.jam+" WIB"].forEach(v=>{
+   const td = document.createElement("td");
+   td.textContent = v;
+   tr.appendChild(td);
+  });
+
+  tbody.appendChild(tr);
+ });
+}
+
+jam();
+setInterval(jam,1000);
+</script>
+</body>
+</html>
